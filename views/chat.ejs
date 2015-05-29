@@ -1,0 +1,21 @@
+<% include header.ejs %>
+
+<script type="text/javascript" src="/javascripts/socket.io.js"></script>
+<script src="http://cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+
+<script type="text/javascript">
+	var socket = io('http://localhost:4000');
+	socket.on('connect_test', function(data){
+		console.log(data);
+		socket.emit('hi', '噜啦啦');
+	})
+</script>
+
+	<div class="well">
+		<h1><%= title %></h1>
+		<p>This is a simple hero unit, a simple jumbotron-style component for calling extra attention to featured content or information.</p>
+		<p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a></p>
+	</div>
+
+
+<% include footer.ejs %>

@@ -1,0 +1,31 @@
+<% include header.ejs %>
+<script src="http://cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+
+	<div class="well jumbotron">
+		<h1><%= title %></h1>
+		<p>输入用户名开始socket聊天</p>
+		
+		<form class="form-inline" method="post" onsubmit="javascript:return false;">
+		  <div class="from-group">
+			<div class="input-group">
+				<input type="text" class="form-control" id="username" placeholder="用户名"/>
+			</div>
+			<br/>
+			<button class="btn btn-primary" type="submit" id="btn">开始</button>
+		  </div>
+		  
+		</form>
+	</div>
+
+	<script type="text/javascript">
+		$('#btn').click(function(){
+			$.post('http://localhost:3000/chat/init',{name: $('#username').val()},function(responce){
+				if(responce == 1){
+					window.location.href="/chat";
+				}
+			});
+			return false;
+		});
+	</script>
+
+<% include footer.ejs %>
