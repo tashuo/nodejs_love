@@ -1,9 +1,13 @@
-var express = require('express');
-var router = express.Router();
+exports.test = function(io){
+	return function(req, res){
+		res.render('user', {'title': 'test'});
+		io.on('connection', function(socket){
+			socket.emit('hi', 'hehehe');
+			socket.on('hehe', function(data){
+				console.log(data);
+			});
 
-/* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
-});
-
-module.exports = router;
+			console.log(new Date()+' test');
+		});
+	}
+}

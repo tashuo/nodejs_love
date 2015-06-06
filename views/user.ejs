@@ -1,0 +1,13 @@
+<% include header.ejs %>
+
+<script type="text/javascript" src="/javascripts/socket.io.js"></script>
+
+<script type="text/javascript">
+	var socket = io('http://localhost:3000');
+	socket.on('hi', function(data){
+		console.log(data);
+		socket.emit('hehe', '噜啦啦');
+	});
+</script>
+
+<% include footer.ejs %>

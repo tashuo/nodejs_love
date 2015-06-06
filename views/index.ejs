@@ -1,4 +1,6 @@
 <% include header.ejs %>
+
+<script type="text/javascript" src="/javascripts/socket.io.js"></script>
 <script src="http://cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 
 	<div class="well jumbotron">
@@ -19,9 +21,12 @@
 
 	<script type="text/javascript">
 		$('#btn').click(function(){
-			$.post('http://localhost:3000/chat/init',{name: $('#username').val()},function(responce){
-				if(responce == 1){
-					window.location.href="/chat";
+			$.post('/chat/init',{name: $('#username').val()},function(responce){
+				console.log('hehe: '+responce);
+				if(responce){
+					window.location.href="/chat/start";
+				}else{
+					alert('用户名不存在');
 				}
 			});
 			return false;

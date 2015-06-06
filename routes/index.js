@@ -6,4 +6,5 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'ta_shuo' });
 });
 
+
 module.exports = router;

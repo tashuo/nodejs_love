@@ -3,19 +3,61 @@
 <script type="text/javascript" src="/javascripts/socket.io.js"></script>
 <script src="http://cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 
-<script type="text/javascript">
-	var socket = io('http://localhost:4000');
-	socket.on('connect_test', function(data){
-		console.log(data);
-		socket.emit('hi', '噜啦啦');
-	})
-</script>
-
 	<div class="well">
 		<h1><%= title %></h1>
 		<p>This is a simple hero unit, a simple jumbotron-style component for calling extra attention to featured content or information.</p>
-		<p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a></p>
+		<input type="text" name="message" id="message" class="form-control"/>
+		<br/>
+		<button type="button" id="smt" class="btn btn-primary">发送</button>
+	</div>
+	<div class="alert alert-info">
+		对方: <span id="lover_name"><%= lover_name %></span>, 登录状态: <span id="lover_state"><%= lover_state %></span>
+	</div>
+	<div class="well" id="messageList">
+		<h1> >>下面是聊天内容<< </h1>
 	</div>
 
+
+<script type="text/javascript">
+	var socket = io('http://localhost:3000');
+	socket.on('connect', function(){
+		socket.emit('hi', '噜啦啦');
+	});
+
+	//对方登录事件
+	socket.on('login', function(data){
+		$('#lover_state').html('1');
+		console.log(data);
+		//回应对方登录事件，更新对方状态的记录
+		socket.emit('login_update', '更新对方状态');
+	})
+
+	//对方登出事件
+	socket.on('logout', function(data){
+		$('#lover_state').html('0');
+		console.log(data);
+		//回应对方登出事件，更新对方状态的记录
+		socket.emit('logout_update', '更新对方状态');
+	})
+
+	//接收信息
+	socket.on('msg', function(data){
+		console.log('收到信息：'+data);
+		$('#messageList').append('<div class="alert alert-warning">TA说：'+data+'</div>');
+	})
+
+	//发送信息
+	$('#smt').click(function(){
+		var message = $('#message').val();
+		console.log(message);
+		$.post('/chat/message', {message: message}, function(responce){
+			console.log(responce);
+			if(responce.state == 1){
+				$('#messageList').append('<div class="alert alert-success">我说：'+message+'</div>');
+				$('#message').val('');
+			}
+		})
+	})
+</script>
 
 <% include footer.ejs %>
