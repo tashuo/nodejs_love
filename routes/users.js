@@ -1,13 +1,15 @@
-exports.test = function(io){
-	return function(req, res){
-		res.render('user', {'title': 'test'});
-		io.on('connection', function(socket){
-			socket.emit('hi', 'hehehe');
-			socket.on('hehe', function(data){
-				console.log(data);
-			});
+var express = require('express');
+var router = express.Router();
+var mongoose = require('mongoose');
+var Message = require('../models/message.js');
 
-			console.log(new Date()+' test');
-		});
-	}
-}
+/* GET home page. */
+router.get('/', function(req, res, next) {
+  Message.find(function(err, data){
+  	console.log(data);
+  	res.send(data);
+  })
+});
+
+
+module.exports = router;

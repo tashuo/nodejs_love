@@ -41,23 +41,23 @@
 	})
 
 	//接收信息
-	socket.on('msg', function(data){
+	socket.on('message', function(data){
 		console.log('收到信息：'+data);
-		$('#messageList').append('<div class="alert alert-warning">TA说：'+data+'</div>');
+		$('#messageList').append('<div class="alert alert-warning" style="text-align: right">'+data+' :TA</div>');
 	})
 
 	//发送信息
 	$('#smt').click(function(){
 		var message = $('#message').val();
 		console.log(message);
-		$.post('/chat/message', {message: message}, function(responce){
-			console.log(responce);
-			if(responce.state == 1){
-				$('#messageList').append('<div class="alert alert-success">我说：'+message+'</div>');
-				$('#message').val('');
-			}
-		})
-	})
+		socket.emit('message', message);
+		$('#messageList').append('<div class="alert alert-success">Me: '+message+'</div>');
+		$('#message').val('');
+	});
+
+	//监听输入框状态
+	
+
 </script>
 
 <% include footer.ejs %>

@@ -20,11 +20,16 @@
 	</div>
 
 	<script type="text/javascript">
+	var socket = io('http://localhost:3000');
+	socket.on('connect', function(){
+		console.log('connectd socket');
+		socket.emit('hi', '噜啦啦');
+	});
 		$('#btn').click(function(){
-			$.post('/chat/init',{name: $('#username').val()},function(responce){
+			$.post('/chat/login',{name: $('#username').val()},function(responce){
 				console.log('hehe: '+responce);
 				if(responce){
-					window.location.href="/chat/start";
+					window.location.href="/chat";
 				}else{
 					alert('用户名不存在');
 				}
