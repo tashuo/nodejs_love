@@ -9,6 +9,7 @@ var cookieParser = require('cookie-parser');
 var cookie = require('cookie');
 var bodyParser = require('body-parser');
 var debug = require('debug')('generated-express-app');
+var moment = require('moment');
 
 var mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/test',function(err){
@@ -17,13 +18,15 @@ mongoose.connect('mongodb://localhost/test',function(err){
   }
 });
 
-//引入User表
+//引入User表,Message表
 var User = require('./models/user.js');
 var Message = require('./models/message.js');
 
-var routes = require('./routes/index');
-var users = require('./routes/users');
-var chat = require('./routes/chat');
+var routes = require('./routes/index'); //登录注册
+var users = require('./routes/users'); //个人中心
+var chat = require('./routes/chat'); //聊天界面
+var home = require('./routes/home'); //爱的小屋
+var square = require('./routes/square'); //广场
 
 //直接在app.js中建立http服务器,去除./bin/www中的代码
 var app = express();
@@ -50,7 +53,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(Session({ secret: 'ta_shuo_session',
                   key: 'express.sid' ,
-                  cookie: { maxAge: 5000},
+                  cookie: { maxAge: 60000},
                   store: sessionStore,
                   resave: true,
                   saveUninitialized: true
@@ -59,10 +62,11 @@ app.use(Session({ secret: 'ta_shuo_session',
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-//用户登录验证接口
+//路由
 app.use('/', routes);
 app.use('/chat', chat);
 app.use('/users', users);
+
 
 //建立socket服务,此处的server必须是已经监听端口的http server
 var io = require('socket.io')(server);
@@ -78,13 +82,13 @@ io.set('authorization', function (handshakeData, accept) {
       //判断解密出的session_id
       sessionStore.get(handshakeData.sessionID, function(err, session){
         //从mc中获取的session
-        // console.log('认证时mc中的session_id: '+handshakeData.sessionID+'， 和session：');
-        // console.log(session);
+        console.log('认证时mc中的session_id: '+handshakeData.sessionID+'， 和session：');
+        console.log(session);
         //如果用户处于登录状态，则允许其建立socket连接
-        if(!err && typeof session.username !== 'undefined'){
+        if(!err && typeof session !== 'undefined' && typeof session.username !== 'undefined'){
           //将当前session存入该连接,但是之后的连接怎么接收到这里设置的session?
-          handshakeData.session = session;
-          console.log(handshakeData);
+          // handshakeData.session = session;
+          // console.log(handshakeData);
           accept(null, true);
         }
       });
@@ -96,8 +100,6 @@ io.set('authorization', function (handshakeData, accept) {
 
 
 io.on('connection', function(socket){
-    console.log('connecting...');
-    console.log(socket);
     var cookie_t = cookie.parse(socket.handshake.headers.cookie);
     var session_id = cookieParser.signedCookie(cookie_t['express.sid'], 'ta_shuo_session');
     //获取登录用户名，更新mongo数据（此处只有将message事件放到函数内才不会出错，放到函数的外面则会出现根据session_id获取不到session的情况,为什么?）
@@ -108,68 +110,89 @@ io.on('connection', function(socket){
           console.log('存入socket_id出错: '+err);
         }else{
           console.log('存入socket_id成功：'+socket.id);
-          //由于还不知道怎么在socket中修改session值，故现在只能先从mongodb获取对方socket_id
-          socket.on('message', function(message){
-            User.findOne({username: session.lovername}, function(err, data){
-              if(typeof data !== 'undefined'){
-                //如果对方登录状态，则直接发送socket消息,否则存入mongodb
-                var msg_state = 0;
-                if(data.state == 1 && data.socket_id != 0){
-                  msg_state = 1;
-                  io.to(data.socket_id).emit('message', message);
-                }
-                //将聊天信息存入mongodb
-                var msg = new Message({from_user: session.username, to_user: session.lovername, to_room: '0', dateline: new Date(), content: message, state: msg_state});
-                msg.save(function(err){
-                  if(err){
-                    console.log('存入信息失败: '+err);
-                  }else{
-                    console.log('存入信息成功: '+message)
-                  }
-                });
-              }else{
-                console.log('获取对方信息失败');
-              }
-            });
-          });
+        }
+      });
 
-          socket.emit('connect');
+      socket.emit('connect');
 
-          //怎么修改mc中存储的session值?
-          socket.on('login_update', function(data){
-            console.log(data);
-            //some codes
-          });
-      
-          socket.on('disconnect', function(){
-            console.log(session.username+' 关闭连接');
-            User.findOne({username: session.lovername}, function(err, data){
-              console.log('获取到的用户信息：');
-              if(typeof data !== 'undefined'){
-                console.log(data);
-                io.to(data.socket_id).emit('logout', '对方退出登录');
-              }else{
-                console.log('获取失败');
-              }
-            });
-
-            //更新用户信息
-            User.update({username: session.username}, {$set: {socket_id: 0, state: 0}}, function(err){
+      //由于还不知道怎么在socket中修改session值，故现在只能先从mongodb获取对方socket_id
+      socket.on('message', function(message){
+        User.findOne({username: session.lovername}, function(err, data){
+          if(typeof data !== 'undefined'){
+            //如果对方登录状态，则直接发送socket消息,否则存入mongodb
+            var msg_state = 0;
+            if(data.state == 1 && data.socket_id != 0){
+              msg_state = 1;
+              io.to(data.socket_id).emit('message', message);
+            }
+            //将聊天信息存入mongodb
+            var msg = new Message({from_user: session.username, to_user: session.lovername, to_room: '0', dateline: Math.floor(Date.now()/1000), content: message, state: msg_state});
+            msg.save(function(err){
               if(err){
-                console.log('断开socket连接后更新mongodb失败：'+err);
+                console.log('存入信息失败: '+err);
               }else{
-                console.log('断开socket连接后更新mongodb成功');
+                console.log('存入信息成功: '+message+' 时间: '+Date.now())
               }
-              
             });
-          })
+          }else{
+            console.log('获取对方信息失败');
+          }
+        });
+      });
+
+      //怎么修改mc中存储的session值?
+      socket.on('login_update', function(data){
+        // console.log(data);
+        //some codes
+      });
+
+      //修改对方实时状态,如果用户登录则实时更新状态
+      socket.on('state', function(state){
+        if(typeof session.loverstate === 'undefined' || session.loverstate != 1 || session.loversocketid == 0){
+          User.findOne({username: session.lovername}, function(err, data){
+            if(typeof data !== 'undefined'){
+              console.log('state-对方信息: ');
+              console.log(data);
+              data.socket_id == 0 || io.to(data.socket_id).emit('state', state);
+            }else{
+              console.log('获取对方信息失败');
+            }
+          });
+        }else{
+          console.log('state-session: ');
+          console.log(session);
+          io.to(session.loversocketid).emit('state', state);
         }
       });
 
       //如果对方登录，则向对方发送已登录的信息
       if(typeof session.loverstate !== 'undefined' && session.loverstate == 1 && session.loversocketid != 0){
-        io.to(session.loversocketid).emit('login', session.username+' 登录啦噜噜噜');
+        console.log('login-session: ');
+        console.log(session);
+        io.to(session.loversocketid).emit('login', session.username+' 登录啦噜噜噜222');
       };
+
+      //断掉socket连接一系列操作
+      socket.on('disconnect', function(){
+        console.log(session.username+' 关闭连接');
+        User.findOne({username: session.lovername}, function(err, data){
+          console.log('获取到的用户信息：');
+          if(typeof data !== 'undefined'){
+            console.log(data);
+            io.to(data.socket_id).emit('logout', '对方退出登录');
+          }else{
+            console.log('获取失败');
+          }
+        });
+        //更新用户信息
+        User.update({username: session.username}, {$set: {socket_id: 0, state: 0}}, function(err){
+          if(err){
+            console.log('断开socket连接后更新mongodb失败：'+err);
+          }else{
+            console.log('断开socket连接后更新mongodb成功');
+          }
+        });
+      });
     });
   });
 

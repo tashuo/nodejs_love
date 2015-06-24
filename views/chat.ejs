@@ -2,20 +2,43 @@
 
 <script type="text/javascript" src="/javascripts/socket.io.js"></script>
 <script src="http://cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+<script type="text/javascript" src="/javascripts/moment.min.js"></script>
+<div class="container">
+  <div class="rows">
+    <div class="col-lg-10 col-md-12 col-sm-12 col-xm-12">
+	<nav class="navbar navbar-default navbar-fixed-top">
+	  <div class="container">
+	    <div class="navbar-header" style="float: none">
+      		<a class="navbar-brand" href="#">Node</a>
+      		<a class="navbar-brand" id="lover_state" href="javascript:;" style="float: right"><%= lover_state == 1 ? 'online' : 'offline' %></a>
+      		<a class="navbar-brand" id="lover_name" href="javascript:;" style="float: right"><%= lover_name %></a>
+    	</div>
+      </div>
+	</nav>
 
-	<div class="well">
-		<h1><%= title %></h1>
-		<p>This is a simple hero unit, a simple jumbotron-style component for calling extra attention to featured content or information.</p>
-		<input type="text" name="message" id="message" class="form-control"/>
-		<br/>
-		<button type="button" id="smt" class="btn btn-primary">发送</button>
+	<div class="progress" id="loadMore" style="display: none">
+		<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+			<span class="sr-only">100% Complete</span>
+		</div>
 	</div>
-	<div class="alert alert-info">
-		对方: <span id="lover_name"><%= lover_name %></span>, 登录状态: <span id="lover_state"><%= lover_state %></span>
-	</div>
+
 	<div class="well" id="messageList">
-		<h1> >>下面是聊天内容<< </h1>
 	</div>
+
+	<div style="position: fixed; bottom: 0; padding: 0; left: 0; right: 0">
+		<form class="form-inline" method="post">
+		  <div class="form-group" style="margin-bottom: 0px; width: 100%">
+		    <label class="sr-only" for="message">Amount (in dollars)</label>
+		    <div class="input-group" style="width: 100%">
+		      <input type="text" name="message" id="message" class="form-control" placeholder="Say what u wonna say">
+		      <div class="input-group-addon btn btn-info" id="smt" type="submit">Bingo!</div>
+		    </div>
+		  </div>
+		</form>
+	</div>
+	</div>
+  </div>
+</div>
 
 
 <script type="text/javascript">
@@ -26,7 +49,7 @@
 
 	//对方登录事件
 	socket.on('login', function(data){
-		$('#lover_state').html('1');
+		$('#lover_state').html('online');
 		console.log(data);
 		//回应对方登录事件，更新对方状态的记录
 		socket.emit('login_update', '更新对方状态');
@@ -34,7 +57,7 @@
 
 	//对方登出事件
 	socket.on('logout', function(data){
-		$('#lover_state').html('0');
+		$('#lover_state').html('offline');
 		console.log(data);
 		//回应对方登出事件，更新对方状态的记录
 		socket.emit('logout_update', '更新对方状态');
@@ -42,22 +65,99 @@
 
 	//接收信息
 	socket.on('message', function(data){
-		console.log('收到信息：'+data);
 		$('#messageList').append('<div class="alert alert-warning" style="text-align: right">'+data+' :TA</div>');
+		//将页面滚动到最底部
+		window.scrollTo(0,document.body.scrollHeight);
+	})
+
+	//接收状态信息
+	socket.on('state', function(data){
+		console.log('监听到state: '+data);
+		$('#lover_state').html(data);
 	})
 
 	//发送信息
 	$('#smt').click(function(){
 		var message = $('#message').val();
+		if($.trim(message) == ''){
+			return false;
+		}
 		console.log(message);
 		socket.emit('message', message);
 		$('#messageList').append('<div class="alert alert-success">Me: '+message+'</div>');
+
+		//将页面滚动到最底部
+		window.scrollTo(0,document.body.scrollHeight);
+		
 		$('#message').val('');
+
+		return false;
 	});
 
-	//监听输入框状态
-	
+	//页数
+	var page = 1;
+	//获取未读消息,须注意排序与展示的问题
+	$.get('/chat/getMessage?page='+page, function(responce){
+		var newNodes = '<div id="message_page_1">';
+		for(i = 0; i < responce.length/2; i++){
+			if(responce[i+15] == 1){
+				newNodes += '<div class="alert alert-success">Me: '+responce[i]["content"]+' 时间: '+responce[i]['dateline']+'</div>';
+			}else{
+				newNodes += '<div class="alert alert-warning" style="text-align: right">'+responce[i]["content"]+ '时间: '+responce[i]['dateline']+' :TA</div>';
+			}
+			
+		}
+		newNodes += '</div>';
+		page ++;
+		$('#messageList').append(newNodes);
 
+		//将页面滚动到最底部
+		window.scrollTo(0,document.body.scrollHeight);
+	})
+
+	//监听输入框状态
+	$('#message').keydown(function(){
+		socket.emit('state', 'typing...');
+	});
+	$('#message').keyup(function(){
+		socket.emit('state', 'online');
+	})
+
+	//此处将 $(window) 变量缓存起来才能在下面正常解绑scoll事件，为何？
+	var $win = $(window);
+	//加载更多聊天记录
+	$win.scroll(function(e){
+		if($win.scrollTop() == 0){
+			$('#loadMore').show();
+			$.get('/chat/getMessage?page='+page, function(responce){
+				if(responce.length == 0){
+					//解绑 window.scroll 事件
+					$win.unbind('scroll');
+					$('#loadMore').hide();
+					return false;
+				}
+
+				var newNodes = '<div style="display: none" id="message_page_'+page+'">';
+				for(i = 0; i < responce.length/2; i++){
+					if(responce[i+15] == 1){
+						newNodes += '<div class="alert alert-success">Me: '+responce[i]["content"]+' 时间: 	'+responce[i]['dateline']+'</div>';
+					}else{
+						newNodes += '<div class="alert alert-warning" style="text-align: right">'+responce[i]["content"]+ '时间: '+responce[i]['dateline']+' :TA</div>';
+					}
+				}
+				newNodes += '</div>';
+
+				$('#message_page_'+(page-1)).before(newNodes);
+				$('#message_page_'+page).show('slow', function(){
+					var newHeight = $(this).height();
+					//将页面滚动至加载前top的位置
+					window.scrollTo(0,newHeight);
+					$('#loadMore').hide();
+				});
+				page ++;
+			});
+		}
+	})
 </script>
 
 <% include footer.ejs %>

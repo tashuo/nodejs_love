@@ -3,7 +3,7 @@ var messageSchema = new mongoose.Schema({
 		from_user: String,
 		to_user: String,
 		to_room: String,
-		dateline: {type: Date,default: Date.now},
+		dateline: String,
 		content: String,
 		state: String
 	});

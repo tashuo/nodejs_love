@@ -1,13 +1,159 @@
 <% include header.ejs %>
 
-<script type="text/javascript" src="/javascripts/socket.io.js"></script>
+	<link rel='stylesheet' href='/stylesheets/font-awesome.min.css' />
+	<link rel='stylesheet' href='/stylesheets/jquery.multilevelpushmenu.css' />
+	<script type="text/javascript" src="/javascripts/jquery.multilevelpushmenu.min.js"></script>
+	<script type="text/javascript" src="/javascripts/modernizr.min.js"></script>
+	<style>
+		body, html {
+		    overflow: hidden;
+		}
+		#menu {
+		    height: 400px important!;
+		    overflow-x: hidden;
+		    overflow-y: auto;
+		    margin-left: -50px;
+		    margin-top: -70px;
+		}
+	</style>
+	<div class="container">
+		<div class="rows">
+			<div class="col-md-8">
+				<div id="menu"></div>
+				<div class="alert alert-info">噜啦啦啦啦</div>
+			</div>
+		</div>
+	</div>
 
-<script type="text/javascript">
-	var socket = io('http://localhost:3000');
-	socket.on('hi', function(data){
-		console.log(data);
-		socket.emit('hehe', '噜啦啦');
-	});
+
+	<script>
+		$(document).ready(function () {
+
+    $('#menu').multilevelpushmenu({
+        menu: menuTree,
+        menuWidth: '30%',
+        preventItemClick: false,
+        mode: 'cover'
+    });
+
+});
+
+var menuTree = [{
+    title: "ta_shuo",
+    icon: "fa fa-bars",
+    items: [{
+        name: "春",
+        link: "#",
+        icon: "fa fa-building-o",
+        items: [{
+            title: "Venues",
+            icon: "fa fa-building-o",
+            items: [{
+                name: "106 S Madison, Traverse City MI",
+                link: "#106SMAD",
+                queryString: "106 S Madison, Traverse City MI"
+            }, {
+                name: "2101 Commonwealth",
+                link: "#2101COMM",
+                queryString: "2101 Commonwealth"
+            }, {
+                name: "5900 Byron Cntr, Wyoming MI",
+                link: "#5900BYRON",
+                queryString: "5900 Byron Cntr, Wyoming MI"
+            }, {
+                name: "AL1",
+                link: "#AL1",
+                queryString: "AL1"
+            }, {
+                name: "AL2",
+                link: "#AL2",
+                queryString: "AL2"
+            }, {
+                name: "Alpena Hospital",
+                link: "#ALPENA",
+                queryString: "Alpena Hospital"
+            }, {
+                name: "Mt Pleasant",
+                link: "#MTPL",
+                queryString: "Mt Pleasant"
+            }, {
+                name: "Brehm",
+                link: "#BREHM",
+                queryString: "Brehm"
+            }]
+        }]
+    }, {
+        name: "夏",
+        link: "#",
+        icon: "fa fa-sitemap",
+        items: [{
+            title: "Departments",
+            icon: "fa fa-sitemap",
+            items: [{
+                name: "Ambulatory Care",
+                link: "#AMBCARE",
+                queryString: "Ambulatory Care"
+            }, {
+                name: "Brehm Center Administration",
+                link: "#BCADMIN",
+                queryString: "Brehm Center Administration"
+            }, {
+                name: "CW Administration",
+                link: "#CWADMIN",
+                queryString: "CW Administration"
+            }, {
+                name: "CW ORs",
+                link: "#CWORS",
+                queryString: "CW ORs"
+            }, {
+                name: "CC Administration",
+                link: "#CCADMIN",
+                queryString: "CC Administration"
+            }]
+        }]
+    }, {
+        name: "秋",
+        link: "#",
+        icon: "fa fa-folder",
+        items: [{
+            title: "Types",
+            icon: "fa fa-folder",
+            items: [{
+                name: "Conference Room",
+                link: "#CONFROOM",
+                queryString: "Conference Room"
+            }, {
+                name: "Open Collaboration Space",
+                link: "#COLLAB",
+                queryString: "Open Collaboration Space"
+            }, {
+                name: "Operating Room",
+                link: "#OR",
+                queryString: "Operating Room"
+            }, {
+                name: "Personal Residence",
+                link: "#RESIDENCE",
+                queryString: "Personal Residence"
+            }, {
+                name: "Private Departmental Location",
+                link: "#PRIVDEPT",
+                queryString: "Private Departmental Location"
+            }, {
+                name: "Private Departmental Group Location",
+                link: "#PRIVDEPTGRP",
+                queryString: "Private Departmental Group Location"
+            }, {
+                name: "Private Office",
+                link: "#PRIVOFFICE",
+                queryString: "Private Office"
+            }]
+        }]
+    }, {
+        name: "冬",
+        link: "#",
+        icon: "fa fa-road"
+    }]
+}];
 </script>
 
 <% include footer.ejs %>
