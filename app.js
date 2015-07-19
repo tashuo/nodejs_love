@@ -26,7 +26,7 @@ var routes = require('./routes/index'); //登录注册
 var users = require('./routes/users'); //个人中心
 var chat = require('./routes/chat'); //聊天界面
 var tips = require('./routes/tips'); //提示界面
-//var home = require('./routes/home'); //爱的小屋
+var home = require('./routes/home'); //爱的小屋
 //var square = require('./routes/square'); //广场
 
 //直接在app.js中建立http服务器,去除./bin/www中的代码

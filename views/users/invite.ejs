@@ -6,15 +6,29 @@
 			<div class="col-md-8 col-sm-8 col-xs-10 col-md-offset-2">
 				<div class="login">
 					<fieldset>
-					  <legend>22唯一邀请链接</legend>
-					  <blockquote>
-  						<p><%= invite_url %></p>
-					  </blockquote>
-					  <span class="help-block">复制此链接发送给TA,马上开启甜蜜之旅吧~</span>
+					  <legend>唯一邀请链接</legend>
+					  <form class="form-horizontal">
+					  	<div class="form-group" style="margin-left: 0;">
+					  		<input id="invite_url" class="form-control" type="text" value="<%= invite_url %>" readonly>
+					  	</div>
+					  	<div class="form-group" style="margin-left: 0;">
+					  		<input id="copybtn" type="submit" class="btn btn-info btn-sm" value="copy">
+					  	</div>
+					  	<span class="help-block">复制此链接发送给TA,马上开启甜蜜之旅吧~</span>
+					  </form>
 					</fieldset>
 				</div>
 			</div>
 		</div>
 	</div>
+
+	<script>
+		//复制链接
+		$('#copybtn').click(function(){
+			var url = $('#invite_url').val();
+			window.prompt("复制: Ctrl+C, Enter", url);
+			return false;
+		})
+	</script>
 
 <% include ../common/footer.ejs %>
