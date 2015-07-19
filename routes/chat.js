@@ -12,19 +12,26 @@ router.get('/', function(req, res, next){
 	if(typeof req.session.username === 'undefined'){
 		return res.redirect('/');
 	};
-	//获取对方登录状态和socket_id
-	User.findOne({username: req.session.lovername}, function(err, data){
-		if(err){
-			console.log('获取对方信息出错：'+err);
-		}else{
-			console.log('对方信息: ');
-			console.log(data);
-			req.session.loverstate = data.state;
-			req.session.loversocketid = data.socket_id;
-		}
-		//渲染模板
-		res.render('chat', {'title': 'socket.io', 'lover_name': req.session.lovername, 'lover_state': req.session.loverstate});
-	});
+
+	//此处需判断是否是新用户且没有lover
+	if(typeof req.session.lovername === 'undefined'){
+		res.render('users/invite', {'title': '邀请'});
+	}else{
+		//获取对方登录状态和socket_id
+		User.findOne({username: req.session.lovername}, function(err, data){
+			if(err){
+				console.log('获取对方信息出错：'+err);
+			}else{
+				console.log('对方信息: ');
+				console.log(data);
+				req.session.loverstate = data.state;
+				req.session.loversocketid = data.socket_id;
+			}
+			//渲染模板
+			res.render('chat/chat', {'title': '与'+req.session.lovername+'聊天中', 'lover_name': req.session.lovername, 'lover_state': req.session.loverstate});
+		});
+	}
+	
 });
 
 //获取历史聊天消息页面
@@ -84,40 +91,6 @@ router.get('/getMessage', function(req, res, next){
 
 	//findAndModify函数不能用?
 	// Message.findAndModify({state: 0}, {state: 1},{}, function(err, data){});
-});
-
-//登录验证页面
-router.post('/login', function(req, res, next){
-	if(req.body.name){
-		var username = req.body.name;
-		console.log(username);
-		//查看该用户是否存在于mongodb
-		User.findOne({'username': username}, function(err, data){
-			if(err){
-				console.log('查找'+username+'异常');
-			}else{
-				if(data){
-					console.log('查找结果：'+data);
-					//更新用户登录状态
-					User.update({username: username}, {$set: {state: 1}}, function(err){
-						if(err)
-							console.log('update state error: '+err);
-						else{
-							//对方名称
-							var lover_name = data.lover;
-							//将用户名存入session
-							req.session.username = username;
-							req.session.lovername = data.lover;
-							res.send('1');
-						}
-					})
-				}else{
-					console.log('查找该用户不存在');
-					res.send('');
-				}
-			}
-		})
-	}
 });
 
 module.exports = router;

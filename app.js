@@ -25,8 +25,9 @@ var Message = require('./models/message.js');
 var routes = require('./routes/index'); //登录注册
 var users = require('./routes/users'); //个人中心
 var chat = require('./routes/chat'); //聊天界面
-var home = require('./routes/home'); //爱的小屋
-var square = require('./routes/square'); //广场
+var tips = require('./routes/tips'); //提示界面
+//var home = require('./routes/home'); //爱的小屋
+//var square = require('./routes/square'); //广场
 
 //直接在app.js中建立http服务器,去除./bin/www中的代码
 var app = express();
@@ -66,7 +67,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', routes);
 app.use('/chat', chat);
 app.use('/users', users);
-
+app.use('/tips', tips);
 
 //建立socket服务,此处的server必须是已经监听端口的http server
 var io = require('socket.io')(server);
