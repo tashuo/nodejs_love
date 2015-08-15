@@ -72,9 +72,11 @@
 
 	//接收状态信息
 	socket.on('state', function(data){
-		console.log('监听到state: '+data);
 		$('#lover_state').html(data);
 	})
+
+	//初始化上一次发送时间
+	var last_send_time = 0;
 
 	//发送信息
 	$('#smt').click(function(){
@@ -86,14 +88,19 @@
 		return false;
 	})
 
-
 	function sendMessage(){
 		var message = $('#message').val();
 		if($.trim(message) == ''){
 			return false;
 		}
-		console.log(message);
 		socket.emit('message', message);
+
+		var now_send_time = Math.floor(Date.now()/1000);
+		//如果是一次聊天的开始或者两次对话间隔超过5分钟则显示时间
+		if(last_send_time == 0 || (now_send_time - last_send_time) > 300){
+			last_send_time = now_send_time;
+			$('#messageList').append('<div align="center">'+moment(now_send_time).format("HH:mm:ss")+'</div></br>');
+		}
 		$('#messageList').append('<div class="alert alert-success">Me: '+message+'</div>');
 
 		//将页面滚动到最底部
@@ -102,7 +109,15 @@
 		$('#message').val('');
 	}
 
-	//页数
+	//监听输入框状态
+	$('#message').keydown(function(){
+		socket.emit('state', 'typing...');
+	});
+	$('#message').keyup(function(){
+		socket.emit('state', 'online');
+	})
+
+	//聊天记录
 	var page = 1;
 	//获取未读消息,须注意排序与展示的问题
 	$.get('/chat/getMessage?page='+page, function(responce){
@@ -121,19 +136,9 @@
 
 		//将页面滚动到最底部
 		window.scrollTo(0,document.body.scrollHeight);
-	})
-
-	//监听输入框状态
-	$('#message').keydown(function(){
-		socket.emit('state', 'typing...');
 	});
-	$('#message').keyup(function(){
-		socket.emit('state', 'online');
-	})
-
 	//此处将 $(window) 变量缓存起来才能在下面正常解绑scoll事件，为何？
 	var $win = $(window);
-	//加载更多聊天记录
 	$win.scroll(function(e){
 		if($win.scrollTop() == 0){
 			$('#loadMore').show();
