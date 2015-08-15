@@ -5,6 +5,7 @@ var messageSchema = new mongoose.Schema({
 		to_room: String,
 		dateline: String,
 		content: String,
+		print_time: String,
 		state: String
 	});
 

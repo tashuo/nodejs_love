@@ -26,7 +26,7 @@
 	</div>
 
 	<div style="position: fixed; bottom: 0; padding: 0; left: 0; right: 0">
-		<form class="form-inline" method="post">
+		<form class="form-inline" method="post" id="sendMessage">
 		  <div class="form-group" style="margin-bottom: 0px; width: 100%">
 		    <label class="sr-only" for="message">Amount (in dollars)</label>
 		    <div class="input-group" style="width: 100%">
@@ -78,6 +78,16 @@
 
 	//发送信息
 	$('#smt').click(function(){
+		sendMessage();
+		return false;
+	});
+	$('#sendMessage').submit(function(){
+		sendMessage();
+		return false;
+	})
+
+
+	function sendMessage(){
 		var message = $('#message').val();
 		if($.trim(message) == ''){
 			return false;
@@ -90,9 +100,7 @@
 		window.scrollTo(0,document.body.scrollHeight);
 		
 		$('#message').val('');
-
-		return false;
-	});
+	}
 
 	//页数
 	var page = 1;
@@ -140,9 +148,9 @@
 				var newNodes = '<div style="display: none" id="message_page_'+page+'">';
 				for(i = 0; i < responce.length/2; i++){
 					if(responce[i+15] == 1){
-						newNodes += '<div class="alert alert-success">Me: '+responce[i]["content"]+' 时间: 	'+responce[i]['dateline']+'</div>';
+						newNodes += '<div class="alert alert-success">Me: '+responce[i]["content"]+'</div>';
 					}else{
-						newNodes += '<div class="alert alert-warning" style="text-align: right">'+responce[i]["content"]+ '时间: '+responce[i]['dateline']+' :TA</div>';
+						newNodes += '<div class="alert alert-warning" style="text-align: right">'+responce[i]["content"]+' :TA</div>';
 					}
 				}
 				newNodes += '</div>';
